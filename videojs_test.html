@@ -11,7 +11,7 @@
     <h1>VIDEO.JS TEST</h1>
     <div id="container">
         <video id='my_video' class='video-js vjs-big-play-centered vjs-fluid vjs-time-control'
-               controls="controls" preload='none' width="600" poster="http://media.w3.org/2010/05/sintel/poster.png" data-setup="{}">
+               controls="controls" preload='none' width="600" poster="http://media.w3.org/2010/05/sintel/poster.png" data-setup='{"playbackRates": [0.5, 1, 1.5, 2] }'>
 <!--            <source id='mp4' src="http://media.w3.org/2010/05/sintel/trailer.mp4" type='video/mp4' />-->
 <!--            <source id='webm' src="http://media.w3.org/2010/05/sintel/trailer.webm" type='video/webm' />-->
 <!--            <source id='ogv' src="http://media.w3.org/2010/05/sintel/trailer.ogv" type='video/ogg' />-->
@@ -105,6 +105,10 @@ $(document).ready(function(){
     //         track.mode = 'showing';
     //     }
     // }
+
+    // 재생 속도 조절
+    //attr = data-setup='{"playbackRates": [0.5, 1, 1.5, 2] }'
+
 
 }); // end DOMReady
 
