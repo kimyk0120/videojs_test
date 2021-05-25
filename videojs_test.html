@@ -28,135 +28,115 @@
 $(document).ready(function(){
 
     let MPlayer = class {
+        myPlayer;
+        total_video_time;
+        current_time;
+        remainTime;
+        isPaused;
+
         constructor() {
-        }
-        test(){
-            return "test";
-        }
-    };
-
-    let mplayer = new MPlayer();
-    console.log(mplayer.test());
-
-    let options = {
-        sources: [
-            {
-                type: 'video/mp4',
-                src: 'http://media.w3.org/2010/05/sintel/trailer.mp4',
-                label: '720P'
-            },
-            {
-                type: 'video/mp4',
-                src: 'http://media.w3.org/2010/05/sintel/trailer.mp4',
-                label: '480P'
+            this.options = {
+                sources: [
+                    {
+                        type: 'video/mp4',
+                        src: 'http://media.w3.org/2010/05/sintel/trailer.mp4',
+                        label: '720P'
+                    },
+                    {
+                        type: 'video/mp4',
+                        src: 'http://media.w3.org/2010/05/sintel/trailer.mp4',
+                        label: '480P'
+                    }
+                ],
+                playbackRates: [.2, .5, 1, 1.5, 2.0],
+                poster: "http://media.w3.org/2010/05/sintel/poster.png",
+                controls: true,
+                preload: "auto",
+                width: 540,
+                height: 320,
+                autoplay:false,
+                muted: false,
+                controlBar: {
+                    playToggle: true,
+                    pictureInPictureToggle: true,
+                    remainingTimeDisplay: true,
+                    progressControl: true,
+                    qualitySelector: true,
+                }
             }
-        ],
-        playbackRates: [.5, .75, 1, 1.25, 1.5],
-        poster: "http://media.w3.org/2010/05/sintel/poster.png",
-        controls: true,
-        preload: "auto",
-        width: 540,
-        height: 320,
-        controlBar: {
-            playToggle: true,
-            pictureInPictureToggle: true,
-            remainingTimeDisplay: true,
-            progressControl: true,
-            qualitySelector: true,
+        }
+        playerInit(element_id, setStartTime){
+            this.myPlayer = videojs(element_id, this.options);
+
+            this.myPlayer.ready(function() {
+                console.log("on ready");
+            });
+
+            this.myPlayer.one("loadedmetadata", function (){
+                this._total_video_time = this.duration();  // 비디오 총 시간
+                this.currentTime(setStartTime); // 시작 시간 설정
+                console.log("total_video_time : " + this._total_video_time);
+                console.log("setStartTime : " + setStartTime);
+            });
+
+            // duration, current time
+            this.myPlayer.on('timeupdate', function () {
+                // console.log(myPlayer.readyState());
+                this._current_time = this.currentTime();
+                this._remainTime = this.remainingTime();
+                console.log("totalTime : " + this._total_video_time, ", currentTime : " + this._current_time, ", remainTime : " + this._remainTime);
+
+            });
+
+            // is Paused
+            this.myPlayer.on("click", function(event){
+                event.preventDefault();
+                this._isPaused = this.paused();
+                if (this._isPaused){
+                    var whereYouAt = this.currentTime();
+                    console.log("current click time :  " + whereYouAt)
+                }
+                console.log(this._isPaused);
+            });
+
+            // end
+            this.myPlayer.on("ended", function(){
+                console.log("video end");
+            });
+
+            // error
+            this.myPlayer.on("error", function(){
+                alert("video player error");
+            });
+
+            return this.myPlayer;
+        }
+        PlayerPlay(){
+            this.myPlayer.play();
+        }
+        PlayerPause(){
+            this.myPlayer.pause();
         }
     };
 
-    var myPlayer = videojs('my_video', options);
+    let myPlayer = new MPlayer();  // options 에 대한 정의
+    // myPlayer.options.sources = ["test"];
+    myPlayer.options.muted = true; // auto play시에는 사용자 인터렉션을 위해  audio mute해야함
 
-    console.log(myPlayer);
+    myPlayer.playerInit('my_video', 40);  // video js 객체 및 callbacks 생성
 
-    myPlayer.one("loadedmetadata", onLoadedMetadata);
+    // test
+    setTimeout(function(){
+        myPlayer.PlayerPlay();
+        setTimeout(function(){
+            myPlayer.PlayerPause();
+        }, 7000);
+    }, 5000);
 
-    function onLoadedMetadata() {
-        console.log(myPlayer.duration()); // 비디오 총 시간
-    }
-
-    // current time get/set
-    myPlayer.ready(function() {
-        myPlayer.currentTime(0);  // set
-        var whereYouAt = myPlayer.currentTime();  // get
-        console.log(whereYouAt);
-    });
-
-
-    // var threshold = 4;
-    // var thresholdReached = false;
-
-    // duration, current time
-    myPlayer.on('timeupdate', function () {
-
-        // console.log(myPlayer.readyState());
-
-        var lengthOfVideo = myPlayer.duration();
-        var whereYouAt = myPlayer.currentTime();
-        var remainTime = myPlayer.remainingTime();
-        console.log("총시간 : " + lengthOfVideo, ", 현재 시간 : " + whereYouAt, ", 남은 시간 : " + remainTime);
-
-        // if (myPlayer.currentTime() >= threshold && !thresholdReached) {
-        //     thresholdReached = true;
-        //     alert('Started');
-        // }
-    });
-
-    // is Paused
-    myPlayer.on("click", function(event){
-        event.preventDefault();
-        var isPaused = myPlayer.paused();
-        if (isPaused){
-            var whereYouAt = myPlayer.currentTime();
-            console.log("현재 시청중인 시간 :  " + whereYouAt)
-        }
-        console.log(isPaused);
-    });
-
-    // var srtText = `1
-    //               00:00:00,500 --> 00:00:02,000
-    //               One caption
-    //               2
-    //               00:00:03,000 --> 00:00:05,000
-    //               Another caption`;
-    // var srtRegex = /(.*\n)?(\d\d:\d\d:\d\d),(\d\d\d --> \d\d:\d\d:\d\d),(\d\d\d)/g;
-    // var vttText = 'WEBVTT\n\n' + srtText.replace(srtRegex, '$1$2.$3.$4');
-    //
-    // console.log(vttText);
-    //
-    // var vttBlob = new Blob([vttText], {type : 'text/vtt'});
-    // var blobURL = URL.createObjectURL(vttBlob);
-    // myPlayer.on('loadedmetadata', function() {
-    //     console.log("$$");
-    //     this.addRemoteTextTrack({
-    //         src: blobURL,
-    //         srclang: 'en',
-    //         label: 'english',
-    //         kind: 'subtitles',
-    //     }, true);
-    // });
-
-    // var tracks = myPlayer.textTracks();
-    // console.log(tracks);
-    //
-    // for (var i = 0; i < tracks.length; i++) {
-    //     var track = tracks[i];
-    //
-    //     // Find the English captions track and mark it as "showing".
-    //     if (track.kind === 'captions' && track.language === 'en') {
-    //         track.mode = 'showing';
-    //     }
-    // }
-
-    // 재생 속도 조절
-    //attr = data-setup='{"playbackRates": [0.5, 1, 1.5, 2] }'
 
 
 }); // end DOMReady
 
-
-    
 </script>
 </body>
 </html>
