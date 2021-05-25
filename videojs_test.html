@@ -6,12 +6,14 @@
     <title>video_js_test</title>
     <link href="node_modules/video.js/dist/video-js.min.css" rel="stylesheet" />
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- video js 플러그인 : https://github.com/silvermine/videojs-quality-selector#readme   -->
+    <link href="node_modules/@silvermine/videojs-quality-selector/dist/css/quality-selector.css" rel="stylesheet">
 </head>
 <body>
     <h1>VIDEO.JS TEST</h1>
     <div id="container">
-        <video id='my_video' class='video-js vjs-big-play-centered vjs-fluid vjs-time-control'
-               controls="controls" preload='none' width="600" poster="http://media.w3.org/2010/05/sintel/poster.png" data-setup='{"playbackRates": [0.5, 1, 1.5, 2] }'>
+        <video id='my_video' class='video-js vjs-big-play-centered vjs-fluid vjs-time-control vjs-default-skin'>
 <!--            <source id='mp4' src="http://media.w3.org/2010/05/sintel/trailer.mp4" type='video/mp4' />-->
 <!--            <source id='webm' src="http://media.w3.org/2010/05/sintel/trailer.webm" type='video/webm' />-->
 <!--            <source id='ogv' src="http://media.w3.org/2010/05/sintel/trailer.ogv" type='video/ogg' />-->
@@ -19,20 +21,48 @@
         </video>
     </div>
     <script src="node_modules/video.js/dist/video.min.js"></script>
+    <script src="node_modules/@silvermine/videojs-quality-selector/dist/js/silvermine-videojs-quality-selector.min.js"></script>
 <script type="text/javascript">
 
 
 $(document).ready(function(){
-    // element
-    var myPlayer = videojs('my_video');
+
+    let options = {
+        sources: [
+            {
+                type: 'video/mp4',
+                src: 'http://media.w3.org/2010/05/sintel/trailer.mp4',
+                label: '720P'
+            },
+            {
+                type: 'video/mp4',
+                src: 'http://media.w3.org/2010/05/sintel/trailer.mp4',
+                label: '480P'
+            }
+        ],
+        playbackRates: [.5, .75, 1, 1.25, 1.5],
+        poster: "http://media.w3.org/2010/05/sintel/poster.png",
+        controls: true,
+        preload: "auto",
+        width: 540,
+        height: 320,
+        controlBar: {
+            playToggle: true,
+            pictureInPictureToggle: true,
+            remainingTimeDisplay: true,
+            progressControl: true,
+            qualitySelector: true,
+        }
+    };
+
+    var myPlayer = videojs('my_video', options);
+
     console.log(myPlayer);
 
-    // source
-    myPlayer.src({type: 'video/mp4', src: 'http://media.w3.org/2010/05/sintel/trailer.mp4'});
     myPlayer.one("loadedmetadata", onLoadedMetadata);
 
     function onLoadedMetadata() {
-        alert(myPlayer.duration()); // 총 시간은 비디오 시작전에는 NaN으로 리턴이됨
+        console.log(myPlayer.duration()); // 비디오 총 시간
     }
 
     // current time get/set
@@ -53,10 +83,9 @@ $(document).ready(function(){
         // console.log(myPlayer.readyState());
 
         var lengthOfVideo = myPlayer.duration();
-        // console.log(lengthOfVideo);
-
         var whereYouAt = myPlayer.currentTime();
-        // console.log(whereYouAt);
+        var remainTime = myPlayer.remainingTime();
+        console.log("총시간 : " + lengthOfVideo, ", 현재 시간 : " + whereYouAt, ", 남은 시간 : " + remainTime);
 
         // if (myPlayer.currentTime() >= threshold && !thresholdReached) {
         //     thresholdReached = true;
@@ -68,6 +97,10 @@ $(document).ready(function(){
     myPlayer.on("click", function(event){
         event.preventDefault();
         var isPaused = myPlayer.paused();
+        if (isPaused){
+            var whereYouAt = myPlayer.currentTime();
+            console.log("현재 시청중인 시간 :  " + whereYouAt)
+        }
         console.log(isPaused);
     });
 
